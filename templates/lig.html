@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQTT Data Display</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var socket = io();
+
+            socket.on('mqtt_message', function (msg) {
+                var messagesElement = document.getElementById('messages');
+                var li = document.createElement('li');
+                li.textContent = msg.data;
+                messagesElement.appendChild(li);
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <h1>MQTT Messages</h1>
+    <ul id="messages"></ul>
+</body>
+
+</html>
