@@ -1,18 +1,20 @@
-from flask import Flask,jsonify, render_template
+from flask import Flask, jsonify, render_template
 from flask_socketio import SocketIO
 import paho.mqtt.client as mqtt
 from flask_cors import CORS
+import eventlet
+eventlet.monkey_patch()  # This ensures compatibility with Flask-SocketIO
 
 app = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+# Use Flask-SocketIO with eventlet
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 # MQTT Settings
 MQTT_BROKER = 'localhost'
 MQTT_TOPIC = 'test/topic'
 
 messages = []
-
 
 # MQTT Callback Functions
 def on_connect(client, userdata, flags, rc):
@@ -21,9 +23,9 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     message = msg.payload.decode()
-    print(f"Message received: {msg.payload.decode()}")
+    print(f"Message received: {message}")
     messages.append(message)
-    socketio.emit('mqtt_message', {'data': msg.payload.decode()})
+    socketio.emit('mqtt_message', {'data': message})
 
 # Initialize MQTT Client
 mqtt_client = mqtt.Client()
@@ -39,7 +41,6 @@ def add_cors_headers(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET')
     return response
 
-
 @app.route('/')
 def index():
     return render_template('lig.html')
@@ -49,4 +50,4 @@ def get_messages():
     return jsonify(messages)
 
 if __name__ == '__main__':
-    socketio.run(app,host="0.0.0.0", debug=True)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
